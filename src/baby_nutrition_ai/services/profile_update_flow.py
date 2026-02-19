@@ -11,7 +11,10 @@ from baby_nutrition_ai.models import BabyProfile, FeedingType, Preference
 logger = logging.getLogger(__name__)
 
 # Field keys for update flow
+FIELD_BABY_NAME = "baby_name"
 FIELD_DOB = "dob"
+FIELD_GENDER = "gender"
+FIELD_BIRTH_WEIGHT = "birth_weight"
 FIELD_FEEDING = "feeding"
 FIELD_PREFERENCES = "preferences"
 FIELD_ALLERGIES = "allergies"
@@ -22,26 +25,32 @@ FIELD_HEIGHT = "height"
 
 UPDATE_MENU = (
     "Reply with a number:\n"
-    "1. Date of birth\n"
-    "2. Feeding type\n"
-    "3. Diet preferences\n"
-    "4. Allergies\n"
-    "5. Foods introduced\n"
-    "6. Location\n"
-    "7. Current weight (kg)\n"
-    "8. Height (cm)\n"
+    "1. Baby name\n"
+    "2. Date of birth\n"
+    "3. Gender\n"
+    "4. Birth weight (kg)\n"
+    "5. Feeding type\n"
+    "6. Diet preferences\n"
+    "7. Allergies\n"
+    "8. Foods introduced\n"
+    "9. Location\n"
+    "10. Current weight (kg)\n"
+    "11. Height (cm)\n"
     "0. Done"
 )
 
 FIELD_MAP = {
-    "1": FIELD_DOB,
-    "2": FIELD_FEEDING,
-    "3": FIELD_PREFERENCES,
-    "4": FIELD_ALLERGIES,
-    "5": FIELD_FOODS,
-    "6": FIELD_LOCATION,
-    "7": FIELD_WEIGHT,
-    "8": FIELD_HEIGHT,
+    "1": FIELD_BABY_NAME,
+    "2": FIELD_DOB,
+    "3": FIELD_GENDER,
+    "4": FIELD_BIRTH_WEIGHT,
+    "5": FIELD_FEEDING,
+    "6": FIELD_PREFERENCES,
+    "7": FIELD_ALLERGIES,
+    "8": FIELD_FOODS,
+    "9": FIELD_LOCATION,
+    "10": FIELD_WEIGHT,
+    "11": FIELD_HEIGHT,
     "0": None,
 }
 
@@ -58,7 +67,10 @@ class FlowState:
 def get_field_prompt(field_key: str) -> str:
     """Prompt for entering a specific field value."""
     prompts = {
+        FIELD_BABY_NAME: "Enter baby's name:",
         FIELD_DOB: "Enter date of birth (YYYY-MM-DD):",
+        FIELD_GENDER: "Enter gender: male, female, or other",
+        FIELD_BIRTH_WEIGHT: "Enter birth weight in kg (e.g. 2.8):",
         FIELD_FEEDING: "Enter feeding type: breastfed, formula, or mixed",
         FIELD_PREFERENCES: "Enter diet: veg, egg, non_veg (comma-separated for multiple)",
         FIELD_ALLERGIES: "Enter allergies (comma-separated) or 'none':",
@@ -83,6 +95,9 @@ def parse_and_apply(
     if not value or value.lower() in ("skip", "-", "—"):
         return profile, True, "Skipped"
 
+    if field_key == FIELD_BABY_NAME:
+        return profile.model_copy(update={"baby_name": value.strip() or None}), True, "Updated"
+
     if field_key == FIELD_DOB:
         match = re.match(r"(\d{4})-(\d{1,2})-(\d{1,2})", value)
         if match:
@@ -95,6 +110,25 @@ def parse_and_apply(
             except ValueError:
                 return profile, False, "Invalid date"
         return profile, False, "Use YYYY-MM-DD (e.g. 2024-05-15)"
+
+    if field_key == FIELD_GENDER:
+        v = value.lower()
+        if v in ("male", "boy", "m"):
+            return profile.model_copy(update={"gender": "male"}), True, "Updated"
+        if v in ("female", "girl", "f"):
+            return profile.model_copy(update={"gender": "female"}), True, "Updated"
+        if v in ("other", "prefer not to say"):
+            return profile.model_copy(update={"gender": "other"}), True, "Updated"
+        return profile, False, "Use: male, female, or other"
+
+    if field_key == FIELD_BIRTH_WEIGHT:
+        try:
+            w = float(value.replace(",", "."))
+            if 0 < w < 10:
+                return profile.model_copy(update={"birth_weight_kg": w}), True, "Updated"
+            return profile, False, "Birth weight should be between 0 and 10 kg"
+        except ValueError:
+            return profile, False, "Enter a number (e.g. 2.8)"
 
     if field_key == FIELD_FEEDING:
         v = value.lower()
@@ -193,7 +227,7 @@ class ProfileUpdateFlow:
             state.profile = updated
             on_save(updated, phone)
             self._states[phone] = FlowState(step="menu", field_key=None, profile=updated)
-            return f"{msg}. Update another? Reply 1-8 or 0 when done.\n\n{UPDATE_MENU}", True
+            return f"{msg}. Update another? Reply 1-11 or 0 when done.\n\n{UPDATE_MENU}", True
 
         choice = text.strip()
         if choice == "0":
@@ -208,4 +242,4 @@ class ProfileUpdateFlow:
             state.field_key = field_key
             return get_field_prompt(field_key), True
 
-        return f"Reply with a number 0-8.\n\n{UPDATE_MENU}", True
+        return f"Reply with a number 0-11.\n\n{UPDATE_MENU}", True

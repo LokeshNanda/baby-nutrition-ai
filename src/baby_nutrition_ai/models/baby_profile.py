@@ -27,6 +27,7 @@ class BabyProfile(BaseModel):
     """Baby profile per DATA_MODEL.md."""
 
     baby_id: str = Field(..., description="Unique baby identifier")
+    baby_name: str | None = Field(default=None, description="Baby's name")
     dob: date = Field(..., description="Date of birth")
     gender: str | None = Field(default=None, description="Optional gender")
     birth_weight_kg: float | None = Field(default=None, description="Birth weight in kg")
@@ -50,8 +51,9 @@ class BabyProfile(BaseModel):
         return max(0, months)
 
     def to_ai_context(self) -> dict[str, Any]:
-        """Context for AI prompts - no PII leakage."""
+        """Context for AI prompts."""
         return {
+            "baby_name": self.baby_name,
             "age_in_months": self.age_in_months(),
             "feeding_type": self.feeding_type.value,
             "preferences": [p.value for p in self.preferences],

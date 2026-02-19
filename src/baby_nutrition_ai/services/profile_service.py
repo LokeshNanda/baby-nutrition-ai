@@ -42,7 +42,10 @@ class ProfileService:
         age = profile.age_in_months()
         lines = [
             "*Baby Profile*",
+            f"Name: {profile.baby_name or '-'}",
             f"Age: {age} months",
+            f"Gender: {profile.gender or '-'}",
+            f"Birth weight: {profile.birth_weight_kg or '-'} kg",
             f"Feeding: {profile.feeding_type.value}",
             f"Preferences: {', '.join(p.value for p in profile.preferences) or 'any'}",
             f"Allergies: {', '.join(profile.allergies) or 'none'}",

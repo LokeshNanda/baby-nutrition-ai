@@ -7,6 +7,8 @@ from datetime import date
 from typing import Any
 
 from baby_nutrition_ai.llm.base import LLMClient
+
+MealConstraints = dict[str, Any]
 from baby_nutrition_ai.models import BabyProfile, Meal, MealPlan, Story
 from baby_nutrition_ai.rules import RuleEngine
 
@@ -29,6 +31,7 @@ Context:
 - Foods already introduced (prioritise rotation): {foods_introduced}
 - Location: {location}
 - Current weight (kg): {current_weight_kg}
+{constraints_section}
 
 Rules (MUST follow):
 - Use ONLY age-appropriate textures: {allowed_textures}
@@ -65,16 +68,35 @@ class AIService:
         self._llm = llm
         self._rules = rule_engine
 
+    def _format_constraints(self, constraints: MealConstraints | None) -> str:
+        """Format constraints for the meal plan prompt."""
+        if not constraints:
+            return ""
+        lines = ["Additional constraints (MUST follow):"]
+        if exclude := constraints.get("exclude_foods"):
+            foods = exclude if isinstance(exclude, list) else [exclude]
+            lines.append(f"- Do NOT include these foods: {', '.join(foods)}")
+        if swap := constraints.get("swap_meal"):
+            lines.append(f"- Change the '{swap}' meal - user wants an alternative")
+        if include := constraints.get("include_foods"):
+            foods = include if isinstance(include, list) else [include]
+            lines.append(f"- Prefer or include: {', '.join(foods)}")
+        return "\n".join(lines) if len(lines) > 1 else ""
+
     async def generate_meal_plan(
         self,
         profile: BabyProfile,
         plan_date: date | None = None,
+        constraints: MealConstraints | None = None,
     ) -> MealPlan:
         """Generate 4-meal plan. Rule engine validates and filters output."""
         plan_date = plan_date or date.today()
         age = profile.age_in_months(plan_date)
         ctx = profile.to_ai_context()
         allowed = self._rules.allowed_textures(age)
+        constraints_section = self._format_constraints(constraints)
+        if constraints_section:
+            constraints_section = "\n" + constraints_section
 
         user_prompt = MEAL_PLAN_USER_TEMPLATE.format(
             age_in_months=ctx["age_in_months"],
@@ -84,6 +106,7 @@ class AIService:
             foods_introduced=", ".join(ctx["foods_introduced"]) or "starting solids",
             location=ctx["location"] or "India",
             current_weight_kg=ctx["current_weight_kg"] or "not provided",
+            constraints_section=constraints_section,
             allowed_textures=", ".join(allowed),
         )
 

@@ -14,7 +14,24 @@ TOOLS_DEFINITION = [
         "type": "function",
         "function": {
             "name": "get_meal_plan",
-            "description": "Get today's age-appropriate meal plan (4 meals) for the baby.",
+            "description": "Get today's age-appropriate meal plan (4 meals). Use constraints when user wants changes.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "exclude_foods": {
+                        "type": "string",
+                        "description": "Comma-separated foods to avoid (e.g. potato, carrot)",
+                    },
+                    "swap_meal": {
+                        "type": "string",
+                        "description": "Which meal to change: breakfast, mid_morning, lunch, evening",
+                    },
+                    "include_foods": {
+                        "type": "string",
+                        "description": "Comma-separated foods to prefer or include",
+                    },
+                },
+            },
         },
     },
     {
@@ -22,6 +39,46 @@ TOOLS_DEFINITION = [
         "function": {
             "name": "get_story",
             "description": "Get a short bedtime story for the baby.",
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "log_food_introduced",
+            "description": "Record foods the baby has tried. Use when user says they tried/introduced a food (e.g. mango, banana).",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "foods": {
+                        "type": "string",
+                        "description": "Comma-separated list of foods introduced (e.g. mango, banana, dal)",
+                    },
+                },
+                "required": ["foods"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "update_profile",
+            "description": "Bulk update baby profile. Use when user wants to update multiple fields at once (e.g. 'name is Ravi, boy, allergic to peanut, birth weight 3.2'). Extract all mentioned fields.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "baby_name": {"type": "string", "description": "Baby's name"},
+                    "gender": {"type": "string", "description": "male, female, or other"},
+                    "birth_weight_kg": {"type": "number", "description": "Birth weight in kg"},
+                    "dob": {"type": "string", "description": "Date of birth YYYY-MM-DD"},
+                    "allergies": {"type": "string", "description": "Comma-separated allergies (or 'none' to clear)"},
+                    "feeding_type": {"type": "string", "description": "breastfed, formula, or mixed"},
+                    "preferences": {"type": "string", "description": "Comma-separated: veg, egg, non_veg"},
+                    "foods_introduced": {"type": "string", "description": "Comma-separated foods baby has tried"},
+                    "location": {"type": "string", "description": "City/location"},
+                    "current_weight_kg": {"type": "number", "description": "Current weight in kg"},
+                    "height_cm": {"type": "number", "description": "Height in cm"},
+                },
+            },
         },
     },
 ]

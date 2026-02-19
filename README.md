@@ -112,10 +112,9 @@ For detailed token and setup steps, see **[docs/WHATSAPP_SETUP.md](docs/WHATSAPP
 
 ### Updating Profile
 
-After START creates a default profile, send **UPDATE** to edit it. You'll get a menu (1-8) to update:
-- Date of birth, feeding type, preferences, allergies, foods introduced, location, weight, height
+**Option A: Conversational bulk update** – Say naturally: "Update: name is Ravi, boy, allergic to peanut, birth weight 3.2" and the bot extracts and updates all fields at once.
 
-Reply with the number, enter the value when prompted. Send **0** when done, or **CANCEL** to exit without saving.
+**Option B: Menu (UPDATE command)** – Send **UPDATE** for a numbered menu (1–11) to edit one field at a time: baby name, DOB, gender, birth weight, feeding, preferences, allergies, foods, location, current weight, height. Send **0** when done, or **CANCEL** to exit.
 
 ### Project Structure
 

@@ -2,6 +2,7 @@
 
 import logging
 from datetime import date
+from typing import Any
 
 from baby_nutrition_ai.models import BabyProfile, MealPlan
 from baby_nutrition_ai.persistence import ProfileStore
@@ -28,9 +29,11 @@ class MealPlanService:
         self,
         phone: str,
         baby_id: str | None = None,
+        constraints: dict[str, Any] | None = None,
     ) -> MealPlan | str:
         """
         Get today's meal plan for baby. Returns MealPlan or error message.
+        constraints: exclude_foods, swap_meal, include_foods for refinement.
         """
         profile = self._store.get(phone, baby_id)
         if not profile:
@@ -39,7 +42,9 @@ class MealPlanService:
             )
         plan_date = date.today()
         try:
-            plan = await self._ai.generate_meal_plan(profile, plan_date)
+            plan = await self._ai.generate_meal_plan(
+                profile, plan_date, constraints=constraints
+            )
             return plan
         except Exception as e:
             logger.exception("Meal plan generation failed: %s", e)
