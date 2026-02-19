@@ -1,0 +1,43 @@
+# Food Rules - WHO & Indian Academy of Pediatrics
+# Rules override AI output. No hardcoded food items in code.
+
+safety:
+  # Age thresholds (months)
+  no_salt_sugar_until_months: 12
+  no_honey_until_months: 12
+  no_whole_nuts_until_months: 60  # 5 years
+  no_raw_eggs_ever: true
+  no_unpasteurised_until_months: 12
+
+texture_by_age_months:
+  "4-6": ["pureed", "very_smooth"]
+  "6-8": ["mashed", "lumpy", "finger_foods_soft"]
+  "8-10": ["chopped", "soft", "finger_foods"]
+  "10-12": ["family_food_soft", "cut_appropriately"]
+  "12+": ["family_food", "varied"]
+
+age_buckets:
+  - name: "4-6"
+    min_months: 4
+    max_months: 6
+  - name: "6-8"
+    min_months: 6
+    max_months: 8
+  - name: "8-10"
+    min_months: 8
+    max_months: 10
+  - name: "10-12"
+    min_months: 10
+    max_months: 12
+  - name: "12+"
+    min_months: 12
+    max_months: 999
+
+meal_times:
+  breakfast: "07:00-09:00"
+  mid_morning: "10:00-11:00"
+  lunch: "12:00-14:00"
+  evening: "16:00-18:00"
+  dinner: "19:00-21:00"
+
+disclaimer: "This is a guidance tool. Consult your pediatrician for medical concerns."
