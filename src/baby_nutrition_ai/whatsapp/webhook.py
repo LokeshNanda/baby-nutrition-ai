@@ -4,10 +4,11 @@ import logging
 from typing import Any
 
 from baby_nutrition_ai.llm import OpenAIClient
-from baby_nutrition_ai.persistence import ProfileStore
+from baby_nutrition_ai.persistence import ConversationStore, ProfileStore
 from baby_nutrition_ai.rules import RuleEngine
 from baby_nutrition_ai.services.ai_service import AIService
 from baby_nutrition_ai.services.meal_plan_service import MealPlanService
+from baby_nutrition_ai.services.conversational_handler import ConversationalHandler
 from baby_nutrition_ai.services.profile_service import ProfileService
 from baby_nutrition_ai.services.profile_update_flow import ProfileUpdateFlow
 from baby_nutrition_ai.services.story_service import StoryService
@@ -35,6 +36,7 @@ class WebhookHandler:
         story_service: StoryService,
         profile_service: ProfileService,
         update_flow: ProfileUpdateFlow,
+        conversational: ConversationalHandler,
         sender: WhatsAppSender,
     ) -> None:
         self._store = profile_store
@@ -42,6 +44,7 @@ class WebhookHandler:
         self._story = story_service
         self._profile = profile_service
         self._update_flow = update_flow
+        self._conversational = conversational
         self._sender = sender
 
     def _normalize_command(self, text: str) -> str:
@@ -117,10 +120,7 @@ class WebhookHandler:
         elif cmd == CMD_STORY:
             reply = await self._handle_story(phone_key)
         else:
-            reply = (
-                "Commands: START, PROFILE, UPDATE, TODAY, MONTH, STORY\n"
-                "Send one of these for baby nutrition guidance."
-            )
+            reply = await self._conversational.handle(phone_key, text)
 
         await self._sender.send_text(phone_key, reply, idempotency_key=msg_id)
 
@@ -191,11 +191,20 @@ def create_webhook_handler(
     story = StoryService(ai_service, profile_store, rule_engine)
     profile = ProfileService(profile_store, rule_engine)
     update_flow = ProfileUpdateFlow()
+    conversation_store = ConversationStore(profile_store.data_dir)
+    conversational = ConversationalHandler(
+        llm=llm,
+        meal_plan_service=meal_plan,
+        story_service=story,
+        profile_store=profile_store,
+        conversation_store=conversation_store,
+    )
     return WebhookHandler(
         profile_store=profile_store,
         meal_plan_service=meal_plan,
         story_service=story,
         profile_service=profile,
         update_flow=update_flow,
+        conversational=conversational,
         sender=sender,
     )

@@ -5,6 +5,7 @@ WhatsApp-first AI system for age-appropriate baby meal planning and bedtime stor
 ## Features
 
 - **Commands**: `START`, `PROFILE`, `UPDATE`, `TODAY`, `MONTH`, `STORY`
+- **Conversational**: Natural language (e.g. "What should I feed today?")
 - **4 meals per day** - age-appropriate textures, quantities in spoons
 - **Rule engine** - overrides AI output for safety (no salt/sugar before 12m, etc.)
 - **Bedtime stories** - 60–90 second, Indian context

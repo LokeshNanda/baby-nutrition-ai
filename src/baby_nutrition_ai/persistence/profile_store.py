@@ -17,6 +17,10 @@ class ProfileStore:
         self._data_dir.mkdir(parents=True, exist_ok=True)
         self._index_path = self._data_dir / "index.json"
 
+    @property
+    def data_dir(self) -> Path:
+        return self._data_dir
+
     def _profile_path(self, phone: str, baby_id: str) -> Path:
         safe_phone = "".join(c for c in phone if c.isalnum())
         return self._data_dir / f"{safe_phone}_{baby_id}.json"
