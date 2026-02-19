@@ -1,0 +1,35 @@
+# Git and IDE
+.git
+.gitignore
+.idea
+.vscode
+*.swp
+*.swo
+
+# Python
+.venv
+venv
+__pycache__
+*.py[cod]
+*.egg-info
+.eggs
+dist
+build
+
+# Environment (use docker-compose env_file instead)
+.env
+.env.local
+
+# Data (mounted as volume - don't bake into image)
+data/
+
+# Docs (optional - exclude to keep image small)
+docs/
+*.md
+!README.md
+
+# Tests
+tests/
+.pytest_cache
+.coverage
+htmlcov

@@ -9,6 +9,7 @@ from baby_nutrition_ai.rules import RuleEngine
 from baby_nutrition_ai.services.ai_service import AIService
 from baby_nutrition_ai.services.meal_plan_service import MealPlanService
 from baby_nutrition_ai.services.profile_service import ProfileService
+from baby_nutrition_ai.services.profile_update_flow import ProfileUpdateFlow
 from baby_nutrition_ai.services.story_service import StoryService
 from baby_nutrition_ai.whatsapp.sender import WhatsAppSender
 
@@ -17,9 +18,11 @@ logger = logging.getLogger(__name__)
 # Commands from WHATSAPP_FLOW.md
 CMD_START = "start"
 CMD_PROFILE = "profile"
+CMD_UPDATE = "update"
 CMD_TODAY = "today"
 CMD_MONTH = "month"
 CMD_STORY = "story"
+CMD_CANCEL = "cancel"
 
 
 class WebhookHandler:
@@ -31,12 +34,14 @@ class WebhookHandler:
         meal_plan_service: MealPlanService,
         story_service: StoryService,
         profile_service: ProfileService,
+        update_flow: ProfileUpdateFlow,
         sender: WhatsAppSender,
     ) -> None:
         self._store = profile_store
         self._meal_plan = meal_plan_service
         self._story = story_service
         self._profile = profile_service
+        self._update_flow = update_flow
         self._sender = sender
 
     def _normalize_command(self, text: str) -> str:
@@ -85,10 +90,26 @@ class WebhookHandler:
         cmd = self._normalize_command(text)
         phone_key = self._extract_phone(phone)
 
+        # Check if in profile update flow
+        if self._update_flow.get(phone_key):
+            if cmd == CMD_CANCEL:
+                self._update_flow.cancel(phone_key)
+                reply = "Update cancelled."
+            else:
+                def on_save(profile, ph: str) -> None:
+                    self._profile.save_profile(profile, ph)
+                reply, _ = self._update_flow.handle_input(
+                    phone_key, text, on_save=on_save
+                )
+            await self._sender.send_text(phone_key, reply, idempotency_key=msg_id)
+            return
+
         if cmd == CMD_START:
             reply = await self._handle_start(phone_key)
         elif cmd == CMD_PROFILE:
             reply = await self._handle_profile(phone_key)
+        elif cmd == CMD_UPDATE:
+            reply = await self._handle_update(phone_key)
         elif cmd == CMD_TODAY:
             reply = await self._handle_today(phone_key)
         elif cmd == CMD_MONTH:
@@ -97,7 +118,7 @@ class WebhookHandler:
             reply = await self._handle_story(phone_key)
         else:
             reply = (
-                "Commands: START, PROFILE, TODAY, MONTH, STORY\n"
+                "Commands: START, PROFILE, UPDATE, TODAY, MONTH, STORY\n"
                 "Send one of these for baby nutrition guidance."
             )
 
@@ -110,13 +131,13 @@ class WebhookHandler:
             return (
                 "Profile already exists.\n"
                 f"{self._profile.profile_to_message(existing)}\n\n"
-                "Send PROFILE to view, TODAY for meal plan, STORY for bedtime story."
+                "Send UPDATE to edit, PROFILE to view, TODAY for meal plan, STORY for bedtime story."
             )
         self._profile.create_default_profile(phone)
         return (
             "Welcome! A default profile was created.\n"
-            "Send PROFILE to view it. You can update details later.\n"
-            "Commands: PROFILE, TODAY, STORY, MONTH"
+            "Send UPDATE to add your baby's details, or PROFILE to view.\n"
+            "Commands: UPDATE, PROFILE, TODAY, STORY, MONTH"
         )
 
     async def _handle_profile(self, phone: str) -> str:
@@ -125,6 +146,13 @@ class WebhookHandler:
         if not profile:
             return "No profile. Send START to create one."
         return self._profile.profile_to_message(profile)
+
+    async def _handle_update(self, phone: str) -> str:
+        """Start profile update flow."""
+        profile = self._profile.get_profile(phone)
+        if not profile:
+            return "No profile. Send START to create one first."
+        return self._update_flow.start(phone, profile)
 
     async def _handle_today(self, phone: str) -> str:
         """Today's meal plan."""
@@ -162,10 +190,12 @@ def create_webhook_handler(
     meal_plan = MealPlanService(ai_service, profile_store, rule_engine)
     story = StoryService(ai_service, profile_store, rule_engine)
     profile = ProfileService(profile_store, rule_engine)
+    update_flow = ProfileUpdateFlow()
     return WebhookHandler(
         profile_store=profile_store,
         meal_plan_service=meal_plan,
         story_service=story,
         profile_service=profile,
+        update_flow=update_flow,
         sender=sender,
     )

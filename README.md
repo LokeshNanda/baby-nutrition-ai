@@ -4,7 +4,7 @@ WhatsApp-first AI system for age-appropriate baby meal planning and bedtime stor
 
 ## Features
 
-- **Commands**: `START`, `PROFILE`, `TODAY`, `MONTH`, `STORY`
+- **Commands**: `START`, `PROFILE`, `UPDATE`, `TODAY`, `MONTH`, `STORY`
 - **4 meals per day** - age-appropriate textures, quantities in spoons
 - **Rule engine** - overrides AI output for safety (no salt/sugar before 12m, etc.)
 - **Bedtime stories** - 60–90 second, Indian context
@@ -13,12 +13,40 @@ WhatsApp-first AI system for age-appropriate baby meal planning and bedtime stor
 
 ## Local Development
 
-### Prerequisites
+### Option A: Docker (easiest)
+
+Requires [Docker](https://docs.docker.com/get-docker/) and [Docker Compose](https://docs.docker.com/compose/install/).
+
+```bash
+# Clone and enter project
+cd baby-nutrition-ai
+
+# Copy env template and add your keys
+cp .env.example .env
+# Edit .env with LLM_API_KEY, WHATSAPP_* values
+
+# Run
+docker compose up --build
+```
+
+- API: http://localhost:8000
+- Data persists in `./data` on your machine
+- Use `docker compose up -d` to run in background
+
+Without Compose:
+```bash
+docker build -t baby-nutrition-ai .
+docker run -p 8000:8000 -v $(pwd)/data:/app/data --env-file .env baby-nutrition-ai
+```
+
+### Option B: Python
+
+#### Prerequisites
 
 - Python 3.11+
 - [uv](https://github.com/astral-sh/uv) or pip
 
-### Setup
+#### Setup
 
 ```bash
 # Clone and enter project
@@ -80,6 +108,13 @@ For detailed token and setup steps, see **[docs/WHATSAPP_SETUP.md](docs/WHATSAPP
    - Subscribe to `messages` field
 
 3. **Test**: Send `START` from your WhatsApp number
+
+### Updating Profile
+
+After START creates a default profile, send **UPDATE** to edit it. You'll get a menu (1-8) to update:
+- Date of birth, feeding type, preferences, allergies, foods introduced, location, weight, height
+
+Reply with the number, enter the value when prompted. Send **0** when done, or **CANCEL** to exit without saving.
 
 ### Project Structure
 
