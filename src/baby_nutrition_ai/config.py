@@ -34,6 +34,7 @@ class Settings(BaseSettings):
 
     # Data
     data_dir: Path = Field(default=Path("data"), description="Directory for JSON persistence")
+    redis_url: str | None = Field(default=None, description="Redis URL for cloud persistence (e.g. Upstash)")
 
 
 def load_yaml_config(config_path: Path) -> dict[str, Any]:

@@ -181,6 +181,7 @@ class WebhookHandler:
 
 def create_webhook_handler(
     profile_store: ProfileStore,
+    conversation_store: ConversationStore,
     sender: WhatsAppSender,
 ) -> WebhookHandler:
     """Factory - wires dependencies."""
@@ -191,7 +192,6 @@ def create_webhook_handler(
     story = StoryService(ai_service, profile_store, rule_engine)
     profile = ProfileService(profile_store, rule_engine)
     update_flow = ProfileUpdateFlow()
-    conversation_store = ConversationStore(profile_store.data_dir)
     conversational = ConversationalHandler(
         llm=llm,
         meal_plan_service=meal_plan,

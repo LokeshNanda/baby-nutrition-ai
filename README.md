@@ -83,6 +83,9 @@ WHATSAPP_PHONE_ID=your_phone_number_id
 
 # Data directory (default: ./data)
 DATA_DIR=./data
+
+# Cloud: set REDIS_URL for persistent storage (Upstash free tier)
+# REDIS_URL=rediss://default:xxx@xxx.upstash.io:6379
 ```
 
 ### Run Server
@@ -147,6 +150,10 @@ curl -X POST http://localhost:8000/webhook \
   -H "Content-Type: application/json" \
   -d '{"entry":[{"changes":[{"field":"messages","value":{"metadata":{},"messages":[{"from":"1234567890","id":"wamid.xxx","type":"text","text":{"body":"TODAY"}}]}}]}]}'
 ```
+
+## Cloud Hosting
+
+To deploy for others to use, see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. Supports Railway, Render, and Fly.io. Set `REDIS_URL` (free [Upstash](https://upstash.com) Redis) for persistent profiles and conversations on ephemeral cloud filesystems.
 
 ## Safety
 

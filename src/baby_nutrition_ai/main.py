@@ -7,7 +7,7 @@ from fastapi import FastAPI, Request, Response
 from fastapi.responses import PlainTextResponse
 
 from baby_nutrition_ai.config import get_settings
-from baby_nutrition_ai.persistence import ProfileStore
+from baby_nutrition_ai.persistence import create_stores
 from baby_nutrition_ai.whatsapp import WhatsAppSender, create_webhook_handler
 from baby_nutrition_ai.whatsapp.webhook import WebhookHandler
 
@@ -25,12 +25,13 @@ _handler: WebhookHandler | None = None
 async def lifespan(app: FastAPI):
     """Initialize and cleanup."""
     global _handler
-    settings = get_settings()
-    data_dir = settings.data_dir
-    data_dir.mkdir(parents=True, exist_ok=True)
-    store = ProfileStore(data_dir)
+    profile_store, conversation_store = create_stores()
     sender = WhatsAppSender()
-    _handler = create_webhook_handler(profile_store=store, sender=sender)
+    _handler = create_webhook_handler(
+        profile_store=profile_store,
+        conversation_store=conversation_store,
+        sender=sender,
+    )
     yield
     _handler = None
 
