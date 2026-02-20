@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     whatsapp_verify_token: str = Field(default="", description="Webhook verification token")
     whatsapp_access_token: str = Field(default="", description="Meta WhatsApp API access token")
     whatsapp_phone_id: str = Field(default="", description="WhatsApp Business phone number ID")
+    whatsapp_app_secret: str | None = Field(default=None, description="App secret for webhook signature verification")
 
     # Data
     data_dir: Path = Field(default=Path("data"), description="Directory for JSON persistence")

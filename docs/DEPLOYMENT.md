@@ -104,6 +104,7 @@ fly secrets set REDIS_URL=rediss://xxx
 | `WHATSAPP_VERIFY_TOKEN` | Yes | Webhook verification token |
 | `WHATSAPP_ACCESS_TOKEN` | Yes | Meta WhatsApp API token |
 | `WHATSAPP_PHONE_ID` | Yes | WhatsApp Business phone number ID |
+| `WHATSAPP_APP_SECRET` | Recommended | App secret for webhook signature verification |
 | `REDIS_URL` | For cloud | Upstash Redis URL for persistent storage |
 | `DATA_DIR` | No | Local file storage path (default: ./data) |
 | `PORT` | No | Server port (default: 8000) |

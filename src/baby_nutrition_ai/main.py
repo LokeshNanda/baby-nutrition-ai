@@ -1,5 +1,8 @@
 """FastAPI application - webhook endpoint and health."""
 
+import hashlib
+import hmac
+import json
 import logging
 from contextlib import asynccontextmanager
 
@@ -66,14 +69,34 @@ async def webhook_verify(request: Request) -> Response:
     return PlainTextResponse("Forbidden", status_code=403)
 
 
+def _verify_webhook_signature(raw_body: bytes, signature_header: str | None, secret: str | None) -> bool:
+    """Verify X-Hub-Signature-256 from Meta. Returns True if valid or if verification is skipped."""
+    if not secret or not signature_header or not signature_header.startswith("sha256="):
+        return secret is None  # Skip verification if no secret configured
+    try:
+        expected = hmac.new(secret.encode(), raw_body, hashlib.sha256).hexdigest()
+        received = signature_header[7:].lower()
+        return hmac.compare_digest(expected.lower(), received)
+    except Exception:
+        return False
+
+
 @app.post("/webhook")
 async def webhook_receive(request: Request) -> Response:
     """
     WhatsApp webhook - receives incoming messages.
+    Verifies X-Hub-Signature-256 when WHATSAPP_APP_SECRET is set.
     Returns 200 immediately; Meta requires response within 20s.
     """
+    raw_body = await request.body()
+    settings = get_settings()
+    signature = request.headers.get("x-hub-signature-256")
+    if not _verify_webhook_signature(raw_body, signature, settings.whatsapp_app_secret):
+        if settings.whatsapp_app_secret:
+            logger.warning("Webhook signature verification failed")
+            return Response(status_code=403)
     try:
-        body = await request.json()
+        body = json.loads(raw_body)
     except Exception as e:
         logger.warning("Invalid webhook body: %s", e)
         return Response(status_code=400)

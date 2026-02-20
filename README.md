@@ -151,6 +151,10 @@ curl -X POST http://localhost:8000/webhook \
   -d '{"entry":[{"changes":[{"field":"messages","value":{"metadata":{},"messages":[{"from":"1234567890","id":"wamid.xxx","type":"text","text":{"body":"TODAY"}}]}}]}]}'
 ```
 
+## Security
+
+Set `WHATSAPP_APP_SECRET` (from Meta App Dashboard) to verify webhook signatures and block spoofed requests. See [docs/FEATURES_AND_SECURITY.md](docs/FEATURES_AND_SECURITY.md).
+
 ## Cloud Hosting
 
 To deploy for others to use, see **[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)**. Supports Railway, Render, and Fly.io. Set `REDIS_URL` (free [Upstash](https://upstash.com) Redis) for persistent profiles and conversations on ephemeral cloud filesystems.

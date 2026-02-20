@@ -104,7 +104,17 @@ Meta will send a GET request to your URL. Your server must respond with the `hub
 
 ---
 
-## 6. Environment Variables
+## 6. Optional: Webhook signature verification
+
+To block spoofed webhook requests, add your App Secret:
+
+1. Meta App Dashboard → **Settings** → **Basic** → **App Secret** (click Show)
+2. Add to `.env`: `WHATSAPP_APP_SECRET=your_app_secret`
+3. Redeploy
+
+With this set, only requests signed by Meta are accepted. Recommended for production.
+
+## 7. Environment Variables
 
 Add to your `.env`:
 
@@ -119,7 +129,7 @@ WHATSAPP_VERIFY_TOKEN=my-secret-verify-token-12345
 
 ---
 
-## 7. Test the Connection
+## 8. Test the Connection
 
 1. Start your server: `uvicorn baby_nutrition_ai.main:app --port 8000`
 2. Ensure ngrok is running and pointing to port 8000
@@ -132,7 +142,7 @@ WHATSAPP_VERIFY_TOKEN=my-secret-verify-token-12345
 
 ---
 
-## 8. Production: Add Your Own Number
+## 9. Production: Add Your Own Number
 
 1. Complete [Meta Business Verification](https://developers.facebook.com/docs/whatsapp/embedded-signup) if required
 2. Create or connect a **WhatsApp Business Account**
